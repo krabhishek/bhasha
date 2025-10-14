@@ -299,6 +299,21 @@ class AccountOwnerStakeholder {}
 })
 class BankingSystemStakeholder {}
 
+// Define a behavior (HOW to fulfill the expectation)
+@Behavior({
+  name: 'Validate Positive Amount',
+  behaviorContract: {
+    type: 'sync',
+    inputs: { amount: 'number' },
+    outputs: { isValid: 'boolean' }
+  }
+})
+class ValidatePositiveAmountBehavior {
+  execute(amount: number): boolean {
+    return amount > 0;
+  }
+}
+
 // Define a user journey
 @Journey({
   name: 'Deposit Money',
@@ -329,22 +344,6 @@ class AmountValidatedMilestone {}
   behaviors: [ValidatePositiveAmountBehavior]
 })
 class PositiveAmountExpectation {}
-
-// Define a behavior (HOW to fulfill the expectation)
-@Behavior({
-  name: 'Validate Positive Amount',
-  behaviorContract: {
-    type: 'sync',
-    inputs: { amount: 'number' },
-    outputs: { isValid: 'boolean' }
-  },
-  tests: [PositiveAmountTests]
-})
-class ValidatePositiveAmountBehavior {
-  execute(amount: number): boolean {
-    return amount > 0;
-  }
-}
 ```
 
 ## Core Concepts
