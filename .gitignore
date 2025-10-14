@@ -5,3 +5,5 @@ coverage/
 .vitest/
 *.log
 *.tsbuildinfo
+
+pathakabhishek-bhasha*.tgz
