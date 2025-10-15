@@ -175,3 +175,79 @@ class BoundedContextRegistryClass {
  * Global Bounded Context Registry instance
  */
 export const BoundedContextRegistry = new BoundedContextRegistryClass();
+
+/**
+ * Domain Registry Entry
+ */
+export interface DomainRegistryEntry {
+  target: Constructor;
+  metadata: {
+    name: string;
+    description?: string;
+    context?: string;
+    ubiquitousLanguage?: Record<string, string>;
+    tags?: string[];
+  };
+}
+
+/**
+ * Global Domain Registry
+ * Stores all registered domain classes for easy lookup and analysis
+ */
+class DomainRegistryClass {
+  private domains = new Map<string, DomainRegistryEntry>();
+
+  /**
+   * Register a domain
+   * @param className - Domain class name
+   * @param target - Domain class
+   * @param metadata - Domain metadata
+   */
+  register(className: string, target: Constructor, metadata: DomainRegistryEntry['metadata']): void {
+    if (this.domains.has(className)) {
+      console.warn(
+        `Domain "${className}" is already registered. ` +
+        `This may indicate duplicate domain definitions.`
+      );
+    }
+    this.domains.set(className, { target, metadata });
+  }
+
+  /**
+   * Get domain by class name
+   * @param className - Domain class name
+   * @returns Domain metadata or undefined
+   */
+  get(className: string): DomainRegistryEntry['metadata'] | undefined {
+    return this.domains.get(className)?.metadata;
+  }
+
+  /**
+   * Get all registered domains
+   * @returns Array of all domain metadata
+   */
+  getAll(): DomainRegistryEntry['metadata'][] {
+    return Array.from(this.domains.values()).map(entry => entry.metadata);
+  }
+
+  /**
+   * Check if domain exists
+   * @param className - Domain class name
+   * @returns True if domain is registered
+   */
+  has(className: string): boolean {
+    return this.domains.has(className);
+  }
+
+  /**
+   * Clear registry (useful for testing)
+   */
+  clear(): void {
+    this.domains.clear();
+  }
+}
+
+/**
+ * Global Domain Registry instance
+ */
+export const DomainRegistry = new DomainRegistryClass();

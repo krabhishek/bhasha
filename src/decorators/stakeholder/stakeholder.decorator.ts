@@ -7,7 +7,7 @@ import { METADATA_KEYS } from '../../constants/metadata-keys.js';
 import type { StakeholderMetadata } from '../../types/decorator-metadata.types.js';
 import { StakeholderRegistry, PersonaRegistry } from './registries.js';
 import { AttributeRegistry } from '../attribute/registry.js';
-import { extractPersonaName } from '../../utils/class-reference.utils.js';
+import { extractPersonaName, extractContextName } from '../../utils/class-reference.utils.js';
 
 /**
  * Type alias for class constructors
@@ -80,9 +80,16 @@ export function Stakeholder(options: StakeholderMetadata) {
       options.name = options.role;
     }
 
+    // Store the original references (could be class or string)
+    const personaRef = options.persona;
+    const contextRef = options.context;
+
+    // Extract context name early for ID generation
+    const contextName = extractContextName(contextRef) || (typeof contextRef === 'string' ? contextRef : '');
+
     // Auto-generate ID from context + role if not provided
     if (!options.id) {
-      options.id = generateStakeholderId(options.context, options.role);
+      options.id = generateStakeholderId(contextName, options.role);
     }
 
     // Initialize arrays if not provided
@@ -115,9 +122,6 @@ export function Stakeholder(options: StakeholderMetadata) {
       options.extensions = {};
     }
 
-    // Store the original persona reference (could be class or string)
-    const personaRef = options.persona;
-
     // Store metadata using Symbol.metadata
     const metadata = context.metadata as Record<symbol, unknown>;
     metadata[METADATA_KEYS.STAKEHOLDER] = options;
@@ -142,6 +146,19 @@ export function Stakeholder(options: StakeholderMetadata) {
 
       // Update options with resolved persona name (string)
       options.persona = personaName || (typeof personaRef === 'string' ? personaRef : '');
+
+      // Extract context name from class reference or use string directly
+      const contextName = extractContextName(contextRef);
+
+      if (!contextName) {
+        console.warn(
+          `@Stakeholder decorator on "${target.name}": Could not resolve context reference. ` +
+          `Make sure the @BoundedContext decorator is applied and the class is imported.`
+        );
+      }
+
+      // Update options with resolved context name (string)
+      options.context = contextName || (typeof contextRef === 'string' ? contextRef : '') as any;
 
       // Warning: Check if persona is registered (optional validation)
       if (personaName && !PersonaRegistry.has(personaName)) {

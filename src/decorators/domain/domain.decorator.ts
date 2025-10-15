@@ -5,7 +5,8 @@
 
 import { METADATA_KEYS } from '../../constants/metadata-keys.js';
 import type { DomainMetadata } from '../../types/decorator-metadata.types.js';
-import { BoundedContextRegistry } from './registries.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
+import { BoundedContextRegistry, DomainRegistry } from './registries.js';
 import { AttributeRegistry } from '../attribute/registry.js';
 
 /**
@@ -59,10 +60,14 @@ export function Domain(options: DomainMetadata = {}) {
       throw new Error(`@Domain can only be applied to classes. Applied to: ${context.kind}`);
     }
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Optional validation: Warn if context is specified but not registered
-    if (options.context && !BoundedContextRegistry.has(options.context)) {
+    if (contextName && !BoundedContextRegistry.has(contextName)) {
       console.warn(
-        `@Domain decorator on "${target.name}" references context "${options.context}", ` +
+        `@Domain decorator on "${target.name}" references context "${contextName}", ` +
         `but this context is not registered. Make sure the @BoundedContext decorator ` +
         `is applied and imported before this domain class.`
       );
@@ -75,7 +80,7 @@ export function Domain(options: DomainMetadata = {}) {
 
     // Auto-generate ID from name if not provided
     if (!options.id) {
-      options.id = generateDomainId(options.name, options.context);
+      options.id = generateDomainId(options.name, contextName);
     }
 
     // Initialize arrays if not provided
@@ -83,9 +88,15 @@ export function Domain(options: DomainMetadata = {}) {
       options.tags = [];
     }
 
+    // Build metadata with extracted context name
+    const domainMetadata: DomainMetadata = {
+      ...options,
+      context: contextName,
+    };
+
     // Store metadata using Symbol.metadata
     const metadata = context.metadata as Record<symbol, unknown>;
-    metadata[METADATA_KEYS.DOMAIN] = options;
+    metadata[METADATA_KEYS.DOMAIN] = domainMetadata;
 
     // Process inline attributes (if provided)
     if (options.attributes && options.attributes.length > 0) {
@@ -93,9 +104,14 @@ export function Domain(options: DomainMetadata = {}) {
       AttributeRegistry.registerInline(target, options.attributes);
     }
 
-    // Note: No registry for Domain marker - it's lightweight
-    // To find all domain classes, you would use TypeScript reflection
-    // or a build-time code scanner
+    // Register domain in DomainRegistry
+    DomainRegistry.register(target.name, target, {
+      name: options.name,
+      description: options.description,
+      context: contextName,
+      ubiquitousLanguage: options.ubiquitousLanguage,
+      tags: options.tags,
+    });
   };
 }
 

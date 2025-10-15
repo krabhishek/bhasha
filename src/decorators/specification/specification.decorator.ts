@@ -5,8 +5,9 @@
  */
 
 import { METADATA_KEYS } from '../../constants/metadata-keys.js';
-import type { SpecificationMetadata, LogicMetadata } from '../../types/decorator-metadata.types.js';
+import type { SpecificationMetadata, LogicMetadata, ContextReference } from '../../types/decorator-metadata.types.js';
 import { setMetadata } from '../../utils/metadata.utils.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { LogicRegistry } from '../logic/logic.registry.js';
 
 /**
@@ -21,7 +22,7 @@ export interface SpecificationOptions {
   /**
    * Bounded context this specification belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Entities this specification applies to
@@ -113,9 +114,13 @@ export function Specification(options: SpecificationOptions = {}) {
   ): T {
     const specName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Build specification metadata
     const specMetadata: SpecificationMetadata = {
-      context: options.context,
+      context: contextName,
       appliesTo: options.appliesTo,
       description: options.description,
       tags: options.tags,
@@ -130,7 +135,7 @@ export function Specification(options: SpecificationOptions = {}) {
       outputs: { result: 'boolean' },
       pure: true, // Specifications should always be pure
       cacheable: options.cacheable ?? true, // Cacheable by default
-      context: options.context,
+      context: contextName,
       appliesTo: options.appliesTo,
       description: options.description,
       tags: options.tags,

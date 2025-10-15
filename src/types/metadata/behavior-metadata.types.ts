@@ -84,7 +84,7 @@ export interface BehaviorMetadata extends BaseMetadata {
   expectationId?: string;
 
   /**
-   * Bounded context this behavior belongs to
+   * Bounded context this behavior belongs to (string name)
    */
   context?: string;
 

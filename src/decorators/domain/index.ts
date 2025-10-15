@@ -9,5 +9,5 @@ export { Domain } from './domain.decorator.js';
 export { ValueObject, isValueObject, getValueObjectMetadata } from './value-object.decorator.js';
 
 // Registries
-export { BoundedContextRegistry } from './registries.js';
-export type { BoundedContextRegistryEntry } from './registries.js';
+export { BoundedContextRegistry, DomainRegistry } from './registries.js';
+export type { BoundedContextRegistryEntry, DomainRegistryEntry } from './registries.js';

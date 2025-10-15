@@ -5,8 +5,9 @@
  */
 
 import { METADATA_KEYS } from '../../constants/metadata-keys.js';
-import type { PolicyMetadata, LogicMetadata } from '../../types/decorator-metadata.types.js';
+import type { PolicyMetadata, LogicMetadata, ContextReference } from '../../types/decorator-metadata.types.js';
 import { setMetadata } from '../../utils/metadata.utils.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { LogicRegistry } from '../logic/logic.registry.js';
 
 /**
@@ -21,7 +22,7 @@ export interface PolicyOptions {
   /**
    * Bounded context this policy belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Policy type (approval, pricing, routing, etc.)
@@ -147,9 +148,13 @@ export function Policy(options: PolicyOptions = {}) {
   ): T {
     const policyName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Build policy metadata
     const policyMetadata: PolicyMetadata = {
-      context: options.context,
+      context: contextName,
       policyType: options.policyType,
       description: options.description,
       tags: options.tags,
@@ -165,7 +170,7 @@ export function Policy(options: PolicyOptions = {}) {
       cacheable: options.cacheable ?? false,
       invokes: options.invokes,
       requires: options.requires,
-      context: options.context,
+      context: contextName,
       policyType: options.policyType,
       description: options.description,
       tags: options.tags,

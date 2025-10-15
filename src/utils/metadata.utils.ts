@@ -76,15 +76,24 @@ export function setMetadata<T>(
   value: T,
   target: Constructor
 ): void {
-  const metadata = getMetadataObject(target);
-  if (metadata) {
-    metadata[metadataKey] = value;
-  } else {
-    console.warn(
-      `Cannot set metadata on ${target.name}: Symbol.metadata is not available. ` +
-      `Make sure the class is decorated with a Stage 3 decorator.`
-    );
+  let metadata = getMetadataObject(target);
+
+  // If Symbol.metadata doesn't exist on the constructor, create it
+  if (!metadata) {
+    if (typeof Symbol.metadata !== 'undefined') {
+      // Create the metadata object if Symbol.metadata exists globally
+      metadata = {};
+      (target as ConstructorWithMetadata)[Symbol.metadata] = metadata;
+    } else {
+      console.warn(
+        `Cannot set metadata on ${target.name}: Symbol.metadata is not available. ` +
+        `Make sure the class is decorated with a Stage 3 decorator.`
+      );
+      return;
+    }
   }
+
+  metadata[metadataKey] = value;
 }
 
 /**

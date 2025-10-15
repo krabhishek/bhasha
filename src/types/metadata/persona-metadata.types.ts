@@ -120,8 +120,8 @@ export interface StakeholderMetadata extends BaseMetadata {
   role: string;
 
   /**
-   * Bounded context where this stakeholder operates (required)
-   * Example: "Investment Management", "Bill Payment", "Lending"
+   * Bounded context where this stakeholder operates (required, string name)
+   * Example: "Investment Management"
    */
   context: string;
 

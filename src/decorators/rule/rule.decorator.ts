@@ -5,8 +5,9 @@
  */
 
 import { METADATA_KEYS } from '../../constants/metadata-keys.js';
-import type { RuleMetadata, LogicMetadata } from '../../types/decorator-metadata.types.js';
+import type { RuleMetadata, LogicMetadata, ContextReference } from '../../types/decorator-metadata.types.js';
 import { setMetadata } from '../../utils/metadata.utils.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { LogicRegistry } from '../logic/logic.registry.js';
 
 /**
@@ -21,7 +22,7 @@ export interface RuleOptions {
   /**
    * Bounded context this rule belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Rule type (validation, business, constraint)
@@ -161,9 +162,13 @@ export function Rule(options: RuleOptions = {}) {
   ): T {
     const ruleName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Build rule metadata
     const ruleMetadata: RuleMetadata = {
-      context: options.context,
+      context: contextName,
       ruleType: options.ruleType || 'business',
       appliesTo: options.appliesTo,
       description: options.description,
@@ -182,7 +187,7 @@ export function Rule(options: RuleOptions = {}) {
       },
       pure: options.pure ?? true,
       cacheable: options.cacheable ?? true,
-      context: options.context,
+      context: contextName,
       ruleType: options.ruleType || 'business',
       appliesTo: options.appliesTo,
       description: options.description,

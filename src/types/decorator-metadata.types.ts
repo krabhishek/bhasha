@@ -20,6 +20,8 @@ export type {
   AttributeMetadata,
 
   // Domain Types
+  BoundedContextClass,
+  ContextReference,
   BoundedContextMetadata,
   DomainMetadata,
   DomainEntityMetadata,

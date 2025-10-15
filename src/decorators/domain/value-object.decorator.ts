@@ -5,6 +5,7 @@
 
 import { METADATA_KEYS } from '../../constants/metadata-keys.js';
 import type { ValueObjectMetadata, ConstructorWithMetadata } from '../../types/decorator-metadata.types.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { AttributeRegistry } from '../attribute/registry.js';
 
 /**
@@ -119,6 +120,10 @@ export function ValueObject(options: ValueObjectMetadata = {}) {
       throw new Error(`@ValueObject can only be applied to classes. Applied to: ${context.kind}`);
     }
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Validation: Ensure immutability (warn if explicitly set to false)
     if (options.immutable === false) {
       console.warn(
@@ -142,7 +147,7 @@ export function ValueObject(options: ValueObjectMetadata = {}) {
 
     // Auto-generate ID if not provided
     if (!options.id) {
-      options.id = generateValueObjectId(options.name, options.context);
+      options.id = generateValueObjectId(options.name, contextName);
     }
 
     // Initialize arrays if not provided
@@ -150,9 +155,15 @@ export function ValueObject(options: ValueObjectMetadata = {}) {
       options.tags = [];
     }
 
+    // Build metadata with extracted context name
+    const valueObjectMetadata: ValueObjectMetadata = {
+      ...options,
+      context: contextName,
+    };
+
     // Store metadata using Symbol.metadata
     const metadata = context.metadata as Record<symbol, unknown>;
-    metadata[METADATA_KEYS.VALUE_OBJECT] = options;
+    metadata[METADATA_KEYS.VALUE_OBJECT] = valueObjectMetadata;
 
     // Process inline attributes (if provided)
     if (options.attributes && options.attributes.length > 0) {

@@ -9,8 +9,10 @@ import { METADATA_KEYS } from '../../constants/metadata-keys.js';
 import type {
   EventHandlerMetadata,
   LogicMetadata,
+  ContextReference,
 } from '../../types/decorator-metadata.types.js';
 import { setMetadata } from '../../utils/metadata.utils.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { LogicRegistry } from '../logic/logic.registry.js';
 import { EventRegistry } from './event.registry.js';
 
@@ -52,7 +54,7 @@ export interface EventHandlerOptions {
   /**
    * Bounded context this handler belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Required services/repositories for dependency injection
@@ -229,6 +231,10 @@ export function EventHandler(options: EventHandlerOptions) {
   ): T {
     const handlerName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Validate required field: eventType
     if (!options.eventType) {
       throw new Error(`@EventHandler "${handlerName}": eventType is required`);
@@ -258,7 +264,7 @@ export function EventHandler(options: EventHandlerOptions) {
       cacheable: false, // Don't cache event handler results
       retryable: options.retryable ?? true,
       timeout: options.timeout,
-      context: options.context,
+      context: contextName,
       requires: options.requires,
       description: options.description,
       tags: options.tags,

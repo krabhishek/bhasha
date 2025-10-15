@@ -9,6 +9,19 @@ import type { AttributeDefinition } from './attribute-metadata.types.js';
 import type { BaseMetadata } from './metadata.types.js';
 
 /**
+ * Bounded Context class constructor type
+ */
+export type BoundedContextClass = new (...args: never[]) => unknown;
+
+/**
+ * Context reference - allows both type-safe class references and string names
+ * Used in decorator options to allow users to reference contexts either way:
+ * - By class: context: OrderManagementContext (type-safe, refactorable)
+ * - By string: context: 'Order Management' (flexible, simple)
+ */
+export type ContextReference = string | BoundedContextClass;
+
+/**
  * Bounded Context metadata
  * Represents a DDD bounded context
  */
@@ -50,9 +63,15 @@ export interface BoundedContextMetadata extends BaseMetadata {
  */
 export interface DomainMetadata extends BaseMetadata {
   /**
-   * Bounded context this domain model belongs to
+   * Bounded context this domain model belongs to (string name)
    */
   context?: string;
+
+  /**
+   * Ubiquitous language terms specific to this domain
+   * Maps terms to their definitions in the domain context
+   */
+  ubiquitousLanguage?: Record<string, string>;
 
   /**
    * Inline attribute definitions (alternative to @Attribute decorator)
@@ -66,7 +85,7 @@ export interface DomainMetadata extends BaseMetadata {
  */
 export interface DomainEntityMetadata extends BaseMetadata {
   /**
-   * Bounded context this entity belongs to
+   * Bounded context this entity belongs to (string name)
    */
   context?: string;
 
@@ -101,7 +120,7 @@ export interface DomainEntityMetadata extends BaseMetadata {
  */
 export interface ValueObjectMetadata extends BaseMetadata {
   /**
-   * Bounded context
+   * Bounded context (string name)
    */
   context?: string;
 
@@ -130,6 +149,7 @@ export interface ValueObjectMetadata extends BaseMetadata {
 export interface AggregateRootMetadata extends BaseMetadata {
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 
@@ -150,6 +170,7 @@ export interface AggregateRootMetadata extends BaseMetadata {
 export interface AggregateMetadata extends BaseMetadata {
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 }
@@ -161,6 +182,7 @@ export interface AggregateMetadata extends BaseMetadata {
 export interface SpecificationMetadata extends BaseMetadata {
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 
@@ -177,6 +199,7 @@ export interface SpecificationMetadata extends BaseMetadata {
 export interface PolicyMetadata extends BaseMetadata {
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 
@@ -193,6 +216,7 @@ export interface PolicyMetadata extends BaseMetadata {
 export interface RuleMetadata extends BaseMetadata {
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 
@@ -218,6 +242,7 @@ export interface ServiceMetadata extends BaseMetadata {
 
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 }
@@ -233,6 +258,7 @@ export interface RepositoryMetadata extends BaseMetadata {
 
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 }
@@ -248,6 +274,7 @@ export interface FactoryMetadata extends BaseMetadata {
 
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 }
@@ -263,6 +290,7 @@ export interface DomainEventMetadata extends BaseMetadata {
 
   /**
    * Bounded context
+   * Can be BoundedContext class or string name
    */
   context?: string;
 

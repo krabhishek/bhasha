@@ -11,7 +11,9 @@ import type {
   LogicMetadata,
   BehaviorContract,
   BehaviorExecutionMode,
+  ContextReference,
 } from '../../types/decorator-metadata.types.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { LogicRegistry } from '../logic/logic.registry.js';
 import { BehaviorRegistry } from './behavior.registry.js';
 import { mergeReferences, validateAtLeastOne } from '../../utils/reference-utils.js';
@@ -79,7 +81,7 @@ export interface BehaviorOptions {
   /**
    * Bounded context this behavior belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Other logic/services this behavior invokes
@@ -210,6 +212,10 @@ export function Behavior(options: BehaviorOptions): ClassDecorator & MethodDecor
 
     const behaviorName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Validate at least one test is provided
     validateAtLeastOne(
       options.test,
@@ -250,7 +256,7 @@ export function Behavior(options: BehaviorOptions): ClassDecorator & MethodDecor
         executionMode: options.executionMode || 'immediate',
         errorHandling: options.errorHandling,
         performance: options.performance,
-        context: options.context,
+        context: contextName,
         description: options.description,
         tags: options.tags,
         tests: testNames.length > 0 ? testNames : undefined,
@@ -263,7 +269,7 @@ export function Behavior(options: BehaviorOptions): ClassDecorator & MethodDecor
         inputs: options.behaviorContract?.inputs,
         outputs: options.behaviorContract?.outputs,
         expectationId: undefined, // Will be resolved in initializer
-        context: options.context,
+        context: contextName,
         invokes: options.invokesLogic,
         requires: options.requires,
         timeout: options.performance?.timeout,
@@ -315,7 +321,7 @@ export function Behavior(options: BehaviorOptions): ClassDecorator & MethodDecor
         executionMode: options.executionMode || 'immediate',
         errorHandling: options.errorHandling,
         performance: options.performance,
-        context: options.context,
+        context: contextName,
         description: options.description,
         tags: options.tags,
         tests: testNames.length > 0 ? testNames : undefined,
@@ -329,7 +335,7 @@ export function Behavior(options: BehaviorOptions): ClassDecorator & MethodDecor
         inputs: options.behaviorContract?.inputs,
         outputs: options.behaviorContract?.outputs,
         expectationId: '', // Will be resolved in initializer
-        context: options.context,
+        context: contextName,
         invokes: options.invokesLogic,
         requires: options.requires,
         timeout: options.performance?.timeout,

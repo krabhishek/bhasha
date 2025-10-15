@@ -109,7 +109,7 @@ export interface LogicMetadata extends BaseMetadata {
   retryable?: boolean;
 
   /**
-   * Bounded context this logic belongs to
+   * Bounded context this logic belongs to (string name)
    */
   context?: string;
 

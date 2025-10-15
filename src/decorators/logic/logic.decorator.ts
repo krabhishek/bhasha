@@ -10,8 +10,10 @@ import type {
   LogicType,
   LogicExecutionStrategy,
   LogicReference,
+  ContextReference,
 } from '../../types/decorator-metadata.types.js';
 import { setMetadata } from '../../utils/metadata.utils.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { LogicRegistry } from './logic.registry.js';
 
 /**
@@ -86,7 +88,7 @@ export interface LogicOptions {
   /**
    * Bounded context this logic belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Aggregate type this logic operates on
@@ -213,6 +215,10 @@ export function Logic(options: LogicOptions) {
   ): T {
     const logicName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Validate required field: type
     if (!options.type) {
       throw new Error(`@Logic "${logicName}": type is required`);
@@ -252,7 +258,7 @@ export function Logic(options: LogicOptions) {
       requires: options.requires,
       timeout: options.timeout,
       retryable: options.retryable,
-      context: options.context,
+      context: contextName,
       aggregateType: options.aggregateType,
       appliesTo: options.appliesTo,
       composedOf: options.composedOf,

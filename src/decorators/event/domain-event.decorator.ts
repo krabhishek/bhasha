@@ -5,8 +5,9 @@
  */
 
 import { METADATA_KEYS } from '../../constants/metadata-keys.js';
-import type { DomainEventMetadata } from '../../types/decorator-metadata.types.js';
+import type { DomainEventMetadata, ContextReference } from '../../types/decorator-metadata.types.js';
 import { setMetadata } from '../../utils/metadata.utils.js';
+import { extractContextName } from '../../utils/class-reference.utils.js';
 import { EventRegistry } from './event.registry.js';
 
 /**
@@ -27,7 +28,7 @@ export interface DomainEventOptions {
   /**
    * Bounded context this event belongs to
    */
-  context?: string;
+  context?: ContextReference;
 
   /**
    * Aggregate type that emits this event
@@ -128,6 +129,10 @@ export function DomainEvent(options: DomainEventOptions = {}) {
   ): T {
     const eventName = options.name || String(context.name);
 
+    // Extract context name from reference (class or string)
+    const contextRef = options.context;
+    const contextName = contextRef ? extractContextName(contextRef) : undefined;
+
     // Generate eventType from class name if not provided
     // Convert PascalCase to kebab-case
     // Example: TransactionRecordedEvent → transaction-recorded-event
@@ -145,7 +150,7 @@ export function DomainEvent(options: DomainEventOptions = {}) {
     // Build domain event metadata
     const metadata: DomainEventMetadata = {
       eventType,
-      context: options.context,
+      context: contextName,
       aggregateType: options.aggregateType,
       description: options.description,
       tags: options.tags,

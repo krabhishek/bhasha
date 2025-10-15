@@ -7,12 +7,14 @@
 import { METADATA_KEYS } from '../constants/metadata-keys.js';
 import { getMetadata } from './metadata.utils.js';
 import { StakeholderRegistry, PersonaRegistry } from '../decorators/stakeholder/registries.js';
+import { BoundedContextRegistry } from '../decorators/domain/registries.js';
 import type {
   StakeholderMetadata,
   ExpectationMetadata,
   BehaviorMetadata,
   PersonaMetadata,
   DomainEventMetadata,
+  BoundedContextMetadata,
 } from '../types/decorator-metadata.types.js';
 
 /**
@@ -272,4 +274,52 @@ export function extractEventType(event: Constructor | string | undefined): strin
     .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
     .toLowerCase()
     .replace(/-+/g, '.');
+}
+
+/**
+ * Extract bounded context name from either a class reference or string
+ *
+ * @param context - BoundedContext class (with @BoundedContext decorator) or context name string
+ * @returns Context name string
+ *
+ * @example
+ * ```typescript
+ * // From class reference
+ * extractContextName(OrderManagementContext) // => "Order Management"
+ *
+ * // From string
+ * extractContextName("Order Management") // => "Order Management"
+ * ```
+ */
+export function extractContextName(context: Constructor | string | undefined): string | undefined {
+  if (!context) {
+    return undefined;
+  }
+
+  if (typeof context === 'string') {
+    return context;
+  }
+
+  // Try to get name from @BoundedContext metadata
+  const metadata = getMetadata<BoundedContextMetadata>(
+    METADATA_KEYS.BOUNDED_CONTEXT,
+    context
+  );
+
+  if (metadata?.name) {
+    return metadata.name;
+  }
+
+  // If Symbol.metadata not available, try to get from BoundedContextRegistry
+  // Search all contexts in the registry for one with matching class
+  const allContexts = BoundedContextRegistry.getAll();
+  for (const [, entry] of allContexts) {
+    if (entry.target === context || entry.target.name === context.name) {
+      return entry.metadata.name;
+    }
+  }
+
+  // Return undefined if no metadata found - this indicates an error
+  // Caller should handle this appropriately (validation error, warning, etc.)
+  return undefined;
 }
